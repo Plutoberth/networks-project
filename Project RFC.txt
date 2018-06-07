@@ -1,0 +1,28 @@
+A simple data transfer protocol to facilitate agent-manager communication.
+The protocol will be JSON based.
+
+----------------------------------------------------------------------------
+
+A compliant transfer is simply one json dictionary object.
+
+Fields
+----------------
+pvt_ip      | The user's private IP on the network.
+packets     | A list of dictionaries containing packet data.
+ip_countries| A dictionary associating IP addresses with countries.
+
+	"packet" dictionary fields
+	----------------
+	external_ip | The external IP the user communicated with (to lookup in "ip_countries")
+	target_port | The port that the user communicated with.
+	direction   | "i" for incoming, "o" for outgoing.
+	packet_size | The size of the packet in bytes.
+
+	"ip_countries" dictionary fields
+	----------------
+	ip          | Country (string)
+
+	A simple dictionary basically only intended to reduce the size of the packet.
+
+
+
