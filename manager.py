@@ -1,3 +1,7 @@
+import socket
+
+SOCKET_DETAILS = ("", 28972)
+
 SETTINGS_PATH = "settings.dat"
 
 
@@ -36,8 +40,27 @@ def read_dat_file(dat_path: str) -> (dict, dict):
     return workers_dict, blacklist_dict
 
 
+def get_reports() -> (bytes, str):
+    """
+    A simple generator function that listens and returns UDP reports.
+    :return: Data bytes, ip address.
+    """
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # A regular UDP socket.
+    sock.bind(SOCKET_DETAILS)
+
+    while True:
+        yield sock.recvfrom(128000)
+
+
 def main():
     workers, blacklist = read_dat_file(SETTINGS_PATH)
+
+    for data, addr in get_reports():
+
+
+
+
+
 
 
 if __name__ == '__main__':
