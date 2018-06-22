@@ -58,14 +58,13 @@ def get_reports() -> (bytes, str):
         yield sock.recvfrom(256000)
 
 
-def update_dict(dictionary, key, value):
+def update_dict(dictionary: dict, key: str, value: int) -> None:
     """
     If the key is in the dictionary, add the value to it. Otherwise, put the key in the dictionary.
     :return: dicts are passed by reference so we don't need to return anything
     """
     if key in dictionary:
         dictionary[key] += value
-
     else:
         dictionary[key] = value
 
@@ -129,10 +128,9 @@ def update_html(json_path: str, template_path: str, final_path: str):
         value_string = f"%%{html_name}_VALUES%%"
 
         key_line: int = [r[0] for r in enumerate(template) if key_string in r[1]]  # Find the key line
-        value_line: int = [r[0] for r in enumerate(template) if value_string in r[1]]  # Find the value line
-
         template[key_line] = template[key_line].replace(key_string, json.dumps(field_dict.keys))  # Replace
 
+        value_line: int = [r[0] for r in enumerate(template) if value_string in r[1]]  # Find the value line
         template[value_line] = template[value_line].replace(value_string, json.dumps(field_dict.values)) # Insert values
 
     timestamp_line: int = [r[0] for r in enumerate(template) if "%%TIMESTAMP%%" in r[1]]  # Find the timestamp line

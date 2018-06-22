@@ -3,11 +3,16 @@ The protocol will be JSON based.
 
 ----------------------------------------------------------------------------
 
-A compliant transfer is simply one json list object containing packet dictionaries.
+The transfer object is a simple dictionary that contains the user's private ip and a list of dictionaries.
+
+main dictionary fields
+----------------
+pvt_ip      | The user's private IP on the network.
+packets     | A list of packet dictionaries
+
 
 "packet" dictionary fields
 ----------------
-pvt_ip      | The user's private IP on the network.
 ext_ip | The external IP the user communicated with (to lookup in "ip_countries")
 ext_port | The port that the user communicated with.
 direction   | "i" for incoming, "o" for outgoing.

@@ -25,6 +25,14 @@ def get_local_details() -> dict:
     data_dict = {"my_mac": p[Ether].dst, "gateway_mac": p[Ether].src, "my_ip": p[IP].dst, "gateway_ip": p[IP].src}
     return data_dict
 
+def sniff_filter(packet: Packet):
+    return UDP in packet or TCP in packet
 
-print(get_local_details())
+def main():
+
+
+
+
+if __name__ == '__main__':
+    main()
 
