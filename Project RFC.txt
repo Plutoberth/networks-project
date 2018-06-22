@@ -13,10 +13,11 @@ packets     | A list of packet dictionaries
 
 "packet" dictionary fields
 ----------------
-ext_ip | The external IP the user communicated with (to lookup in "ip_countries")
-ext_port | The port that the user communicated with.
+ext_ip      | The external IP the user communicated with (to lookup in "ip_countries")
+ext_port    | The port that the user communicated with.
 direction   | "i" for incoming, "o" for outgoing.
 packet_size | The size of the packet in bytes.
 country     | The country the IP belongs to (string).
+program     | The name of the program that used the connection.
 
 

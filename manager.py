@@ -2,13 +2,13 @@ import socket
 import json
 import datetime
 
-SOCKET_DETAILS = ("", 28972)
+SOCKET_DETAILS = ("127.0.0.1", 28972)
 
 SETTINGS_PATH = "settings.dat"
 JSON_PATH = "datastore.json"
 
 HTML_ASSOC_DICT = {'ext_port': "PORTS", 'ext_ip': "IPS", 'country': "COUNTRIES", 'traffic_incoming': "AGENTS_IN",
-                   'traffic_outgoing': 'AGENTS_OUT'}
+                   'traffic_outgoing': 'AGENTS_OUT', 'program': 'APPS'}
 
 
 def read_dat_file(dat_path: str) -> dict:
@@ -82,17 +82,18 @@ def update_json(data_dict, json_path, program_settings) -> None:
             current_dict = json.loads(f.readline())
 
     except FileNotFoundError:
-        current_dict = {'ext_ip': {}, 'country': {}, 'ext_port': {}, 'traffic_incoming': {}, 'traffic_outgoing': {}}
+        current_dict = {'ext_ip': {}, 'country': {}, 'ext_port': {}, 'traffic_incoming': {}, 'traffic_outgoing': {},
+                        'program' : {}}
 
-    for packet in data_dict:
-        if packet["pvt_ip"] in program_settings["workers"]:
+    for packet in data_dict["packets"]:
+        if data_dict["pvt_ip"] in program_settings["workers"]:
             worker = program_settings['workers'][packet['pvt_ip']]
         else:
             worker = "Unknown"  # We could have a lot of unidentified agents on the network.
 
         packet_size = packet['packet_size']
 
-        for field in ['ext_ip', 'country', 'ext_port']:
+        for field in ['ext_ip', 'country', 'ext_port', 'program']:
             field_data = packet[field]
             update_dict(current_dict[field], field_data, packet_size)
 
@@ -127,14 +128,18 @@ def update_html(json_path: str, template_path: str, final_path: str):
         key_string = f"%%{html_name}_KEYS%%"
         value_string = f"%%{html_name}_VALUES%%"
 
-        key_line: int = [r[0] for r in enumerate(template) if key_string in r[1]]  # Find the key line
-        template[key_line] = template[key_line].replace(key_string, json.dumps(field_dict.keys))  # Replace
+        key_line: int = [r[0] for r in enumerate(template) if key_string in r[1]][0]  # Find the key line
 
-        value_line: int = [r[0] for r in enumerate(template) if value_string in r[1]]  # Find the value line
-        template[value_line] = template[value_line].replace(value_string, json.dumps(field_dict.values)) # Insert values
+        template[key_line] = template[key_line]\
+            .replace(key_string, json.dumps(list(field_dict.keys())))  # Replace
 
-    timestamp_line: int = [r[0] for r in enumerate(template) if "%%TIMESTAMP%%" in r[1]]  # Find the timestamp line
-    template[timestamp_line] = template[timestamp_line].replace("%%TIMESTAMP", datetime.datetime.now())
+        value_line: int = [r[0] for r in enumerate(template) if value_string in r[1]][0]  # Find the value line
+
+        template[value_line] = template[value_line]\
+            .replace(value_string, json.dumps(list(field_dict.values()))) # Insert values
+
+    timestamp_line: int = [r[0] for r in enumerate(template) if "%%TIMESTAMP%%" in r[1]][0]  # Find the timestamp line
+    template[timestamp_line] = template[timestamp_line].replace("%%TIMESTAMP%%", str(datetime.datetime.now()))
 
     with open(final_path, "w") as f:
         f.writelines(template)
@@ -145,10 +150,9 @@ def main():
 
     for data, addr in get_reports():
         data_dict = json.loads(data.decode())
+        print(data_dict)
         update_json(data_dict, JSON_PATH, program_settings)
-        1/0
-
-        update_html(JSON_PATH, None, None)
+        update_html(JSON_PATH, r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\template.html", r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\final.html")
 
 
 if __name__ == '__main__':
