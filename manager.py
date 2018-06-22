@@ -6,6 +6,9 @@ SOCKET_DETAILS = ("127.0.0.1", 28972)
 
 SETTINGS_PATH = "settings.dat"
 JSON_PATH = "datastore.json"
+TEMPLATE_PATH = r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\template.html"
+FINAL_PATH = r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\final.html"
+
 
 HTML_ASSOC_DICT = {'ext_port': "PORTS", 'ext_ip': "IPS", 'country': "COUNTRIES", 'traffic_incoming': "AGENTS_IN",
                    'traffic_outgoing': 'AGENTS_OUT', 'program': 'APPS'}
@@ -152,7 +155,7 @@ def main():
         data_dict = json.loads(data.decode())
         print(data_dict)
         update_json(data_dict, JSON_PATH, program_settings)
-        update_html(JSON_PATH, r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\template.html", r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\final.html")
+        update_html(JSON_PATH, TEMPLATE_PATH, FINAL_PATH)
 
 
 if __name__ == '__main__':
