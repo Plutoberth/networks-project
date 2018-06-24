@@ -31,9 +31,11 @@ class ReportUploader:
             raise Exception("Invalid username!")
 
         html_contents = self._read_file()
-        conn.send(f"700#SIZE={len(html_contents)},HTML={html_contents}")
+        conn.send(f"700#SIZE={len(html_contents)},HTML={html_contents}".encode())
 
-        if conn.recv(2048).decode() != f"705#FILE SAVED TO {self.username}.bossniffer.com":
+        resp = conn.recv(2048).decode()
+        if "705#FILE SAVED TO" not in resp:
+            print(resp)
             raise Exception("Invalid HTML File!")
 
         conn.send("900#BYE".encode())  # Gracefully terminate.
