@@ -18,7 +18,7 @@ class PacketHandler(threading.Thread):
     def __init__(self, packets, countries):
         self.packets = packets
         self.countries = countries
-        super().__init__()
+        super().__init__()  # Required to activate the thread
 
     def run(self):
         """Adds the country field to the dictionary and sends it to the server."""
@@ -26,15 +26,16 @@ class PacketHandler(threading.Thread):
 
         for packet in self.packets:
             ext_ip = packet["ext_ip"]
-            packet["country"] = self.countries[ext_ip]
+            packet["country"] = self.countries[ext_ip]  # Fetches the country. Note: may block for a very long time.
             data_dict['packets'].append(packet)
 
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP socket
         sock.sendto(bytes(json.dumps(data_dict), "utf-8"), MANAGER_DETAILS)
         print("Transmitted data package ({} packets)".format(PACKET_AMOUNT))
 
 
 def sniff_filter(packet: Packet):
+    """A very simple filter to check if there is a UDP or TCP transport layer in the packet."""
     if IP in packet:
         return UDP in packet or TCP in packet
 
@@ -53,12 +54,13 @@ def get_program(local_port: int) -> str:
     local_conn = f"{local_ip}:{local_port}"  # This is the unique connection we need to find within the netstat output.
     netstat_output = get_netstat_output()
 
-    local_conn = local_conn.replace(".", r"\.")  # . is a character that represents any character on regex.
+    # . is a special char that represents any character on regex, so we have to escape it with a backslash.
+    local_conn = local_conn.replace(".", r"\.")
     conn_regex = NETSTAT_REGEX.format(local_conn)  # Format the connection details into the regex pattern.
 
     re_match = re.search(conn_regex, netstat_output, re.MULTILINE)  # Search for it
     if re_match:  # If matched
-        program = re_match.group(3)  # get group number 3, which is the exe.
+        program = re_match.group(3)  # get group number 3, which contains the name of the program.
     else:
         program = "Unknown"  # Just return a generic unknown.
 
@@ -112,13 +114,14 @@ def check_admin():
     if "The requested operation requires elevation." in get_netstat_output():
         print("WARNING: The agent will not report program usage to the manager as it doesn't have admin privileges.")
 
+
 def main():
     global LAN_DETAILS
     global PACKET_DATA
     LAN_DETAILS = get_local_details()
     ip_country = IpCountry()
     threads = []
-    check_admin()
+    check_admin()  # Notify the user if the client can't report programs.
 
     try:
         while True:
