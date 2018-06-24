@@ -24,7 +24,7 @@ class ReportUploader:
         conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         conn.connect(self.server_details)
 
-        #Ask the server if our username is valid
+        # Ask the server if our username is valid
         conn.send(f"400#USER={self.username}".encode())
 
         if conn.recv(2048).decode() != "405#USER OK":
