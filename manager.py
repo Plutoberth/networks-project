@@ -171,7 +171,7 @@ def main():
         update_html(JSON_PATH, TEMPLATE_PATH, FINAL_PATH)
         web_save = report_uploader.update_html()
         if web_save:
-            print("Report saved and uploaded to {}, with {} new packets.".format(web_save, packets_recorded))
+            print("\nReport saved and uploaded to {}, with {} new packets.".format(web_save, packets_recorded))
             packets_recorded = 0
         else:
             sys.stdout.write("\rReceiving data... ({} new packets since last upload)".format(packets_recorded))
