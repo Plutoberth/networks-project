@@ -14,7 +14,6 @@ NETSTAT_REGEX = r"({} .+)([^\[])* \[([a-zA-Z.]+)]"
 
 # Program must be ran in elevated privileges mode (i.e. Administrator) for the program field to work.
 
-
 class PacketHandler(threading.Thread):
     def __init__(self, packets, countries):
         self.packets = packets
@@ -109,12 +108,18 @@ def adjust_delay(ip_class, thread_list):
         ip_class.delay = 0.5
 
 
+def check_admin():
+    if "The requested operation requires elevation." in get_netstat_output():
+        print("WARNING: The agent will not report program usage to the manager as it doesn't have admin privileges.")
+
 def main():
     global LAN_DETAILS
     global PACKET_DATA
     LAN_DETAILS = get_local_details()
     ip_country = IpCountry()
     threads = []
+    check_admin()
+
     try:
         while True:
             PACKET_DATA = []
@@ -129,6 +134,7 @@ def main():
 
     except KeyboardInterrupt:
         print("Aborted agent operation.")
+        raise KeyboardInterrupt
 
 
 if __name__ == '__main__':
