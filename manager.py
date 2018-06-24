@@ -169,6 +169,7 @@ def main():
         print(data_dict)
         update_json(data_dict, JSON_PATH, program_settings)
         update_html(JSON_PATH, TEMPLATE_PATH, FINAL_PATH)
+        
 
 
 if __name__ == '__main__':
