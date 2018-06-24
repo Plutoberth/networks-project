@@ -7,9 +7,9 @@ SOCKET_DETAILS = ("127.0.0.1", 28972)
 
 SETTINGS_PATH = "settings.dat"
 JSON_PATH = "datastore.json"
-TEMPLATE_PATH = r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\template.html"
-FINAL_PATH = r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthing\final.html"
-USERNAME = "nir.harel"
+TEMPLATE_PATH = r"HTML_Files\template.html"
+FINAL_PATH = r"HTML_Files\final.html"
+USERNAME = "nir_harel"
 
 
 HTML_ASSOC_DICT = {'ext_port': "PORTS", 'ext_ip': "IPS", 'country': "COUNTRIES", 'traffic_incoming': "AGENTS_IN",
@@ -169,7 +169,8 @@ def main():
 
     for data, addr in get_reports():
         data_dict = json.loads(data.decode())
-        print(data_dict)
+        print(f"Received a new data package from"
+              f" {data_dict.get('pvt_ip', 'Unknown address')} with {len(data_dict.get('packets', []))} packets.")
         update_json(data_dict, JSON_PATH, program_settings)
         update_html(JSON_PATH, TEMPLATE_PATH, FINAL_PATH)
         report_uploader.update_html()

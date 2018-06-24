@@ -106,3 +106,4 @@ venv.bak/
 .idea/
 open_client.bat
 datastore.json
+HTML_files/final.html
