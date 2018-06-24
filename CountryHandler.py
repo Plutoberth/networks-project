@@ -12,7 +12,7 @@ PVT_IP_REGEX = [re.compile(r"^127.\d{1,3}.\d{1,3}.\d{1,3}$"),
 
 class IpCountry:
     def __init__(self):
-        self.ip_dict = {}  # Store associations
+        self.ip_dict = {}  # Cache ip-country pairs.
         self.num = 0
         self.delay = 1
 
@@ -32,8 +32,7 @@ class IpCountry:
         :param ip: String of an ip.
         :return: Country string.
         """
-
-        regex_results = [pat.match(ip) for pat in PVT_IP_REGEX]
+        regex_results = [pattern.match(ip) for pattern in PVT_IP_REGEX]
         if all(not r for r in regex_results):  # If all values were none (i.e. external IP)
             try:
                 time.sleep(self.delay)
@@ -49,7 +48,7 @@ class IpCountry:
 
             data_dict = json.loads(ip_data.content)
             if data_dict["status"] == "fail":
-                return "Private IP"  # Just incase it slipped through the regex.
+                return "Private IP"  # Just in-case it slipped through the regex.
 
             else:
                 return data_dict["country"]
