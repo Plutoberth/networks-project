@@ -160,16 +160,18 @@ def update_html(json_path: str, template_path: str, final_path: str):
 def main():
     program_settings = read_dat_file(SETTINGS_PATH)
     report_uploader = ReportUploader(FINAL_PATH, USERNAME)
+    packets_recorded = 0
 
     for data, addr in get_reports():
         data_dict = json.loads(data.decode())
-        print(f"Received a new data package from"
-              f" {data_dict.get('pvt_ip', 'Unknown address')} with {len(data_dict.get('packets', []))} packets.")
+        packets_recorded += len(data_dict['packets'])
+
         update_json(data_dict, JSON_PATH, program_settings)
         update_html(JSON_PATH, TEMPLATE_PATH, FINAL_PATH)
         web_save = report_uploader.update_html()
         if web_save:
-            print("Report saved and uploaded to {}".format(web_save))
+            print("Report saved and uploaded to {}, with {} new packets.".format(web_save, packets_recorded))
+            packets_recorded = 0
 
 
 if __name__ == '__main__':
