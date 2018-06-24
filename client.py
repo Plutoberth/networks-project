@@ -5,7 +5,7 @@ import subprocess
 import threading
 
 API_ADDR = "http://ip-api.com/json/{}"
-PACKET_AMOUNT = 100
+PACKET_AMOUNT = 200
 LAN_DETAILS = {}
 PACKET_DATA = []
 MANAGER_DETAILS = ("127.0.0.1", 28972)
@@ -21,6 +21,8 @@ PVT_IP_REGEX = [re.compile(r"^127.\d{1,3}.\d{1,3}.\d{1,3}$"),
 class IpCountry:
     def __init__(self):
         self.ip_dict = {}  # Store associations
+        self.num = 0
+        self.delay = 1
 
     def __getitem__(self, ip):
         """
@@ -32,8 +34,7 @@ class IpCountry:
             self.ip_dict[ip] = self.get_country(ip)
         return self.ip_dict[ip]
 
-    @staticmethod
-    def get_country(ip: str) -> str:
+    def get_country(self, ip: str) -> str:
         """
         Gets the country of an ip.
         :param ip: String of an ip.
@@ -43,9 +44,13 @@ class IpCountry:
         regex_results = [pat.match(ip) for pat in PVT_IP_REGEX]
         if all(not r for r in regex_results):  # If all values were none (i.e. external IP)
             try:
-                ip_data = requests.get(API_ADDR.format(ip))
-                time.sleep(5)
-                print(ip)
+                time.sleep(self.delay)
+                if ip not in self.ip_dict:  # Some other thread might've looked it up in the meantime (while we waited)
+                    ip_data = requests.get(API_ADDR.format(ip))
+                    self.num = self.num + 1
+                else:
+                    return self.ip_dict[ip]
+
             except requests.exceptions.RequestException as e:  # All requests exceptions inherit from this exception
                 print(e)
                 return "Unknown"
@@ -76,7 +81,6 @@ class PacketHandler(threading.Thread):
             data_dict['packets'].append(packet)
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
-        print(data_dict)
         sock.sendto(bytes(json.dumps(data_dict), "utf-8"), MANAGER_DETAILS)
 
 
@@ -145,6 +149,13 @@ def get_local_details() -> dict:
     return data_dict
 
 
+def adjust_delay(ip_class, thread_list):
+    """Adjusts the delay to the ip class based on the number of threads currently active."""
+    if len(thread_list) > 1:
+        ip_class.delay = 0.5 * len(thread_list)  # Adjust the delay based on the number of threads running.
+    else:
+        ip_class.delay = 0.5
+
 def main():
     global LAN_DETAILS
     global PACKET_DATA
@@ -154,12 +165,14 @@ def main():
     try:
         while True:
             PACKET_DATA = []
-            threads = [t for t in threads if not t.is_alive()]
-            print(threads)
+            threads = [t for t in threads if t.is_alive()]
             sniff(lfilter=sniff_filter, prn=record_details, count=PACKET_AMOUNT)
             curr_thread = PacketHandler(PACKET_DATA.copy(), ip_country)
             curr_thread.start()
             threads.append(curr_thread)
+            adjust_delay(ip_country, threads)
+            print("Added data package to queue ({} packets). {} awaiting transmission.".format(PACKET_AMOUNT
+                                                                                               , len(threads)))
 
     except KeyboardInterrupt:
         print("Aborted agent operation.")
