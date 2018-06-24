@@ -1,6 +1,7 @@
 import socket
 import json
 import datetime
+import sys
 from ReportUploadWrapper import ReportUploader
 
 SOCKET_DETAILS = ("127.0.0.1", 28972)
@@ -159,7 +160,7 @@ def update_html(json_path: str, template_path: str, final_path: str):
 
 def main():
     program_settings = read_dat_file(SETTINGS_PATH)
-    report_uploader = ReportUploader(FINAL_PATH, USERNAME)
+    report_uploader = ReportUploader(FINAL_PATH, USERNAME, upload_frequency=240)
     packets_recorded = 0
 
     for data, addr in get_reports():
@@ -172,6 +173,8 @@ def main():
         if web_save:
             print("Report saved and uploaded to {}, with {} new packets.".format(web_save, packets_recorded))
             packets_recorded = 0
+        else:
+            sys.stdout.write("\rReceiving data... ({} new packets since last upload)".format(packets_recorded))
 
 
 if __name__ == '__main__':
