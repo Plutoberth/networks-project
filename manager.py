@@ -88,7 +88,7 @@ def update_json(data_dict, json_path, program_settings) -> None:
 
     except FileNotFoundError:
         current_dict = {'ext_ip': {}, 'country': {}, 'ext_port': {}, 'traffic_incoming': {}, 'traffic_outgoing': {},
-                        'program': {}, 'alerts' : []}
+                        'program': {}, 'alerts': []}
 
     for packet in data_dict["packets"]:
         if data_dict["pvt_ip"] in program_settings["workers"]:
@@ -98,7 +98,7 @@ def update_json(data_dict, json_path, program_settings) -> None:
 
         packet_size = packet['packet_size']
 
-        for field in ['ext_ip', 'country', 'ext_port', 'program']:
+        for field in ['ext_ip', 'country', 'ext_port', 'program']:  # Update the one case fields
             field_data = packet[field]
             update_dict(current_dict[field], field_data, packet_size)
 
@@ -111,10 +111,14 @@ def update_json(data_dict, json_path, program_settings) -> None:
             if not any(r == [worker, packet["ext_ip"]] for r in current_dict["alerts"]):  # If the alert is not present.
                 current_dict["alerts"].append([worker, packet["ext_ip"]])  # Append it.
 
-
-
     with open(json_path, "w") as f:  # Overwrite
         f.write(json.dumps(current_dict))
+
+
+def update_in_list(lines, field_name, field_data):
+    """Find an entry in our list and replace its values."""
+    replace_line: int = [r[0] for r in enumerate(lines) if field_name in r[1]][0]
+    lines[replace_line] = lines[replace_line].replace(field_name, field_data)
 
 
 def update_html(json_path: str, template_path: str, final_path: str):
@@ -140,28 +144,17 @@ def update_html(json_path: str, template_path: str, final_path: str):
             key_string = f"%%{html_name}_KEYS%%"
             value_string = f"%%{html_name}_VALUES%%"
 
-            key_line: int = [r[0] for r in enumerate(template) if key_string in r[1]][0]  # Find the key line
+            update_in_list(template, key_string, json.dumps(list(field_dict.keys())))  # Replace key entry
 
-            template[key_line] = template[key_line]\
-                .replace(key_string, json.dumps(list(field_dict.keys())))  # Replace
-
-            value_line: int = [r[0] for r in enumerate(template) if value_string in r[1]][0]  # Find the value line
-
-            template[value_line] = template[value_line]\
-                .replace(value_string, json.dumps(list(field_dict.values()))) # Insert values
+            update_in_list(template, value_string, json.dumps(list(field_dict.values())))  # Replace value entry
 
     timestamp_string = datetime.datetime.now().strftime("%a, %d of %B, %H:%M:%S")
-    timestamp_line: int = [r[0] for r in enumerate(template) if "%%TIMESTAMP%%" in r[1]][0]  # Find the timestamp line
-    template[timestamp_line] = template[timestamp_line].replace("%%TIMESTAMP%%", timestamp_string)
 
-    alert_line: int = [r[0] for r in enumerate(template) if "%%ALERTS%%" in r[1]][0]  # Find the alert line
-    template[alert_line] = template[alert_line].replace("%%ALERTS%%", json.dumps(data["alerts"]))
+    update_in_list(template, "%%TIMESTAMP%%", timestamp_string)
+    update_in_list(template, "%%ALERTS%%", json.dumps(data["alerts"]))
 
     with open(final_path, "w") as f:
         f.writelines(template)
-
-def upload_file(user: str, html_path: str, server_details: tuple):
-    pass
 
 
 def main():
@@ -174,7 +167,9 @@ def main():
               f" {data_dict.get('pvt_ip', 'Unknown address')} with {len(data_dict.get('packets', []))} packets.")
         update_json(data_dict, JSON_PATH, program_settings)
         update_html(JSON_PATH, TEMPLATE_PATH, FINAL_PATH)
-        report_uploader.update_html()
+        web_save = report_uploader.update_html()
+        if web_save:
+            print("Report saved and uploaded to {}".format(web_save))
 
 
 if __name__ == '__main__':
