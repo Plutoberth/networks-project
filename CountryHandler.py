@@ -1,8 +1,6 @@
 import re
 import requests
 
-
-
 API_ADDR = "http://ip-api.com/json/{}"
 PVT_IP_REGEX = [re.compile(r"^127.\d{1,3}.\d{1,3}.\d{1,3}$"),
                 re.compile(r"^10.\d{1,3}.\d{1,3}.\d{1,3}$"),

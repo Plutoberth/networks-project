@@ -1,12 +1,13 @@
 import socket
 import time
 
+DEFAULT_SERVER_DETAILS = ("54.71.128.194", 8808)
 
 class ReportUploader:
     """A simple wrapper of the ReportUploader protocol."""
-    def __init__(self, html_path, username, server_details: tuple = ("54.71.128.194", 8808), upload_frequency=240):
+    def __init__(self, html_path, username, server_details: tuple = DEFAULT_SERVER_DETAILS, upload_frequency=600):
         """
-
+        A class that uses the ReportUploader protocol to upload html files to the boss sniffer server.
         :param html_path: The path to the HTML file we want to send to the server.
         :param username: The username to use the protocol with.
         :param server_details: A tuple containing the server address and port.
