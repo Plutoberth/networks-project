@@ -1,9 +1,10 @@
 import socket
 import time
 
+
 class ReportUploader:
     """A simple wrapper of the ReportUploader protocol."""
-    def __init__(self, html_path, username, server_details: tuple = ("54.71.128.194", 8808), upload_frequency = 120):
+    def __init__(self, html_path, username, server_details: tuple = ("54.71.128.194", 8808), upload_frequency=240):
         """
 
         :param html_path: The path to the HTML file we want to send to the server.

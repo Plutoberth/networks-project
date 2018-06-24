@@ -150,8 +150,9 @@ def update_html(json_path: str, template_path: str, final_path: str):
             template[value_line] = template[value_line]\
                 .replace(value_string, json.dumps(list(field_dict.values()))) # Insert values
 
+    timestamp_string = datetime.datetime.now().strftime("%a, %d of %B, %H:%M:%S")
     timestamp_line: int = [r[0] for r in enumerate(template) if "%%TIMESTAMP%%" in r[1]][0]  # Find the timestamp line
-    template[timestamp_line] = template[timestamp_line].replace("%%TIMESTAMP%%", str(datetime.datetime.now()))
+    template[timestamp_line] = template[timestamp_line].replace("%%TIMESTAMP%%", timestamp_string)
 
     alert_line: int = [r[0] for r in enumerate(template) if "%%ALERTS%%" in r[1]][0]  # Find the alert line
     template[alert_line] = template[alert_line].replace("%%ALERTS%%", json.dumps(data["alerts"]))
