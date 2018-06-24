@@ -11,7 +11,7 @@ FINAL_PATH = r"D:\Google Drive\Programming\Magshimim\Python\FinalProject\htmlthi
 
 
 HTML_ASSOC_DICT = {'ext_port': "PORTS", 'ext_ip': "IPS", 'country': "COUNTRIES", 'traffic_incoming': "AGENTS_IN",
-                   'traffic_outgoing': 'AGENTS_OUT', 'program': 'APPS'}
+                   'traffic_outgoing': 'AGENTS_OUT', 'program': 'APPS', "alerts": "ALERTS"}
 
 
 def read_dat_file(dat_path: str) -> dict:
@@ -86,11 +86,11 @@ def update_json(data_dict, json_path, program_settings) -> None:
 
     except FileNotFoundError:
         current_dict = {'ext_ip': {}, 'country': {}, 'ext_port': {}, 'traffic_incoming': {}, 'traffic_outgoing': {},
-                        'program' : {}}
+                        'program': {}, 'alerts' : []}
 
     for packet in data_dict["packets"]:
         if data_dict["pvt_ip"] in program_settings["workers"]:
-            worker = program_settings['workers'][packet['pvt_ip']]
+            worker = program_settings['workers'][data_dict['pvt_ip']]
         else:
             worker = "Unknown"  # We could have a lot of unidentified agents on the network.
 
@@ -104,6 +104,12 @@ def update_json(data_dict, json_path, program_settings) -> None:
             update_dict(current_dict['traffic_incoming'], worker, packet_size)
         elif packet["direction"] == "o":  # Outgoing traffic
             update_dict(current_dict['traffic_outgoing'], worker, packet_size)
+
+        if packet["ext_ip"] in program_settings["blacklist"]:
+            if not any(r == [worker, packet["ext_ip"]] for r in current_dict["alerts"]):  # If the alert is not present.
+                current_dict["alerts"].append([worker, packet["ext_ip"]])  # Append it.
+
+
 
     with open(json_path, "w") as f:  # Overwrite
         f.write(json.dumps(current_dict))
@@ -127,25 +133,32 @@ def update_html(json_path: str, template_path: str, final_path: str):
         return
 
     for field_name, field_dict in data.items():
-        html_name = HTML_ASSOC_DICT[field_name]  # Translate the value to the one mentioned in the html file.
-        key_string = f"%%{html_name}_KEYS%%"
-        value_string = f"%%{html_name}_VALUES%%"
+        if field_name != "alerts":
+            html_name = HTML_ASSOC_DICT[field_name]  # Translate the value to the one mentioned in the html file.
+            key_string = f"%%{html_name}_KEYS%%"
+            value_string = f"%%{html_name}_VALUES%%"
 
-        key_line: int = [r[0] for r in enumerate(template) if key_string in r[1]][0]  # Find the key line
+            key_line: int = [r[0] for r in enumerate(template) if key_string in r[1]][0]  # Find the key line
 
-        template[key_line] = template[key_line]\
-            .replace(key_string, json.dumps(list(field_dict.keys())))  # Replace
+            template[key_line] = template[key_line]\
+                .replace(key_string, json.dumps(list(field_dict.keys())))  # Replace
 
-        value_line: int = [r[0] for r in enumerate(template) if value_string in r[1]][0]  # Find the value line
+            value_line: int = [r[0] for r in enumerate(template) if value_string in r[1]][0]  # Find the value line
 
-        template[value_line] = template[value_line]\
-            .replace(value_string, json.dumps(list(field_dict.values()))) # Insert values
+            template[value_line] = template[value_line]\
+                .replace(value_string, json.dumps(list(field_dict.values()))) # Insert values
 
     timestamp_line: int = [r[0] for r in enumerate(template) if "%%TIMESTAMP%%" in r[1]][0]  # Find the timestamp line
     template[timestamp_line] = template[timestamp_line].replace("%%TIMESTAMP%%", str(datetime.datetime.now()))
 
+    alert_line: int = [r[0] for r in enumerate(template) if "%%ALERTS%%" in r[1]][0]  # Find the alert line
+    template[alert_line] = template[alert_line].replace("%%ALERTS%%", json.dumps(data["alerts"]))
+
     with open(final_path, "w") as f:
         f.writelines(template)
+
+def upload_file(user: str, html_path: str, server_details: tuple):
+    pass
 
 
 def main():
